@@ -1,0 +1,21 @@
++--------------+
+|    HOW TO    |
++--------------+
+
+Building a new ISO image:
+------------------------
+
+- Go to "tools" directory of the target Operating System (eg system/6.5/rhel/os/x86_64/tools)
+- Select the ISO profile you want to create (eg ncx)
+  use "./iso-tools -l" command to list available ISO profiles.
+- Checkout the releasenote in ./profiles/<profile>/releasenote.txt
+  make the appropriate modifications.
+  The first "VERSION:" entry will be used as the ISO image version.
+  This version should use the Operating System version (eg 6.5) as the first two digits.
+- Launch ISO image creation:
+  ./iso-tools -p <profile> 
+  the ISO image will be created in ../../../iso/<arch>/
+  A MD5 file is also created for intigrity checking.
+
+
+

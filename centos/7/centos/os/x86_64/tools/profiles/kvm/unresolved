@@ -1,0 +1,10 @@
+Added tmp repo from file:/opt/repo/system/7/centos/os/x86_64
+Reading in repository metadata - please wait....
+Checking Dependencies
+Repos looked at: 1
+   tmp
+Num Packages in Repos: 660
+package: openvswitch-test-2.5.0-1.el7.centos.noarch from tmp
+  unresolved deps: 
+     python-twisted-web
+     python-twisted-core

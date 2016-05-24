@@ -1,0 +1,739 @@
+<html>
+ <head>
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+   <title>CentOS 6.0 Release Notes</title>
+ </head>
+ <body>
+Copyright (C) 2007 The CentOS Project<br>
+<br>
+License: Creative Commons Attribution-Share Alike 3.0 License<br>
+<a href="http://creativecommons.org/licenses/by-sa/3.0/legalcode">http://creativecommons.org/licenses/by-sa/3.0/legalcode</a><br>
+<p>The CentOS project welcomes you to CentOS-6
+<p>The complete release notes for CentOS-6.0 can be found online at <a href="http://wiki.centos.org/Manuals/ReleaseNotes/CentOS6.0">http://wiki.centos.org/Manuals/ReleaseNotes/CentOS6.0</a>. A list of frequently asked questions and answers about CentOS-6 can be found here : <a href="http://wiki.centos.org/FAQ/CentOS6">http://wiki.centos.org/FAQ/CentOS6</a>.
+<p>If you are looking for help with CentOS, we recommend you start at <a href="http://wiki.centos.org/GettingHelp">http://wiki.centos.org/GettingHelp</a> for pointers to the different sources where you can get help.
+<p>For more information about The CentOS Project in general please visit our homepage at <a href="http://www.centos.org">http://www.centos.org</a>.
+<p>If you would like to contribute to the CentOS Project, see <a href="http://wiki.centos.org/Contribute">http://wiki.centos.org/Contribute</a> for areas where you could help.
+<br>
+
+
+#######################################################################
+DATE: 2016-03-18
+VERSION:6.5.8
+
+New Features:
+-------------
+ID   : RD12192 ~ Added a Re-install mode for KVM servers
+Desc : This mode will reinstall the system without overwriting the /opt
+       partition
+
+
+Fixed Bugs:
+-----------
+ID   : None ~ Corrected errors on ncxctl-plugins-kvm package
+Desc : OpenVII nating was not properly handled when upgrading from a
+       version installed without ncxctl
+
+Security:
+---------
+ID   : CVE-2016-0800 - DROWN: Cross-protocol attack on TLS using SSLv2.
+Desc : Updated OpenSSL to version 1.0.1e-42.el6_7.4
+
+
+Known Bugs:
+-----------
+
+Ugrade Notes:
+-------------
+IF upgrading from version prior to 6.5.1:
+Copy bootCD localy (eg /root/) then mount the iso image:
+> mount -o loop bootCD-NETOS6-X.X.X-KVM-x86_64.iso /media/cdrom
+Then execute auto-upgrade tool:
+> /media/cdrom/tools/auto-upgrade
+
+ELSE:
+- You can either use previous method or use ncx-system-upgrade command to update the OS.
+Example:
+copy bootCD-NETOS6-X.X.X-KVM-x86_64.iso in /root, then run
+> ncx-system-upgrade -r iso://root/bootCD-NETOS6-X.X.X-KVM-x86_64.iso
+
+
+
+#######################################################################
+DATE: 2016-01-11
+VERSION:6.5.7
+
+New Features:
+-------------
+
+Fixed Bugs:
+-----------
+ID   : INT16726 ~ OpenVII: snapshot creation fails when its description contains '&'
+Desc : Added a check on snapshot's description to only allow the following·
+       characters: a-z A-Z 0-9 ,:;!?.
+
+ID   : None ~ OpenVII: Clean VM image after merging the last snapshot child
+Desc : a VM image was cleaned only after the last rollback, not for the last
+       merge.
+
+Security:
+---------
+
+Known Bugs:
+-----------
+
+Ugrade Notes:
+-------------
+IF upgrading from version prior to 6.5.1:
+Copy bootCD localy (eg /root/) then mount the iso image:
+> mount -o loop bootCD-NETOS6-X.X.X-KVM-x86_64.iso /media/cdrom
+Then execute auto-upgrade tool:
+> /media/cdrom/tools/auto-upgrade
+
+ELSE:
+- You can either use previous method or use ncx-system-upgrade command to update the OS.
+Example:
+copy bootCD-NETOS6-X.X.X-KVM-x86_64.iso in /root, then run
+> ncx-system-upgrade -r iso://root/bootCD-NETOS6-X.X.X-KVM-x86_64.iso
+
+
+
+#######################################################################
+DATE: 2015-12-24
+VERSION:6.5.6
+
+New Features:
+-------------
+ID   : INT16718 ~ BootCD fails to upgrade.
+Desc : Duplicate [updates] repository names in /etc/yum.repo.d/ 
+       prevent the bootCD to upgrade.
+
+Fixed Bugs:
+-----------
+ID   : INT16608 ~ After reboot KVM server, some VM failed to start.
+Desc : Inproper handling of KVM network services can let a server in 
+       a bad state, which cannot be rescued with a simple reboot.
+       - The proper command to restart a KVM network is now:
+       > ncxctl services.networks --restart
+       
+
+Security:
+---------
+
+Known Bugs:
+-----------
+
+Ugrade Notes:
+-------------
+IF upgrading from version prior to 6.5.1:
+Copy bootCD localy (eg /root/) then mount the iso image:
+> mount -o loop bootCD-NETOS6-X.X.X-KVM-x86_64.iso /media/cdrom
+Then execute auto-upgrade tool:
+> /media/cdrom/tools/auto-upgrade
+
+ELSE:
+- You can either use previous method or use ncx-system-upgrade command to update the OS.
+Example:
+copy bootCD-NETOS6-X.X.X-KVM-x86_64.iso in /root, then run
+> ncx-system-upgrade -r iso://root/bootCD-NETOS6-X.X.X-KVM-x86_64.iso
+
+
+
+#######################################################################
+DATE: 2015-12-21
+VERSION:6.5.5
+
+New Features:
+-------------
+ID   : Related to INT16608 ~ Added ncxctl to KVM server.
+Desc : KVM network configuration is now supported by ncxctl command.
+       All OpenVswitch configuration must now be done with ncxctl
+       As well as setting hostnames and Management interfaces.
+       Check OpenVII documentation for further details.
+
+Fixed Bugs:
+-----------
+ID   : INT16608 ~ After reboot KVM server, some VM failed to start.
+Desc : Inproper handling of KVM network services can let a server in 
+       a bad state, which cannot be rescued with a simple reboot.
+       - The proper command to restart a KVM network is now:
+       > ncxctl services.networks --restart
+       
+
+Security:
+---------
+
+Known Bugs:
+-----------
+
+Ugrade Notes:
+-------------
+IF upgrading from version prior to 6.5.1:
+Copy bootCD localy (eg /root/) then mount the iso image:
+> mount -o loop bootCD-NETOS6-X.X.X-KVM-x86_64.iso /media/cdrom
+Then execute auto-upgrade tool:
+> /media/cdrom/tools/auto-upgrade
+
+ELSE:
+- You can either use previous method or use ncx-system-upgrade command to update the OS.
+Example:
+copy bootCD-NETOS6-X.X.X-KVM-x86_64.iso in /root, then run
+> ncx-system-upgrade -r iso://root/bootCD-NETOS6-X.X.X-KVM-x86_64.iso
+
+
+
+#######################################################################
+DATE: 2015-04-14
+VERSION:6.5.4
+
+New Features:
+-------------
+Fixed Bugs:
+-----------
+ID   : None ~ Missing HP package when upgrading.
+Desc : Corrected the ncx-linux-upgrade tool to include harware specific 
+       packages.
+
+Security:
+---------
+
+Known Bugs:
+-----------
+
+Ugrade Notes:
+-------------
+IF upgrading from version prior to 6.5.1:
+Copy bootCD localy (eg /root/) then mount the iso image:
+> mount -o loop bootCD-NETOS6-X.X.X-KVM-x86_64.iso /media/cdrom
+Then execute auto-upgrade tool:
+> /media/cdrom/tools/auto-upgrade
+
+ELSE:
+- You can either use previous method or use ncx-system-upgrade command to update the OS.
+Example:
+copy bootCD-NETOS6-X.X.X-KVM-x86_64.iso in /root, then run
+> ncx-system-upgrade -r iso://root/bootCD-NETOS6-X.X.X-KVM-x86_64.iso
+
+
+
+#######################################################################
+DATE: 2015-04-14
+VERSION:6.5.3
+
+New Features:
+-------------
+ID   : DR-0-218-220 ~ ECS Unified Alarming
+Desc : Added HP monitoring packages and updated OpenVII to version 1.8.0
+
+Fixed Bugs:
+-----------
+ID   : None ~ Added missing freeipmi package.
+Desc : freeipmi package is needed to configure IPMI PEF that handle snmp 
+       traps.
+
+Security:
+---------
+
+Known Bugs:
+-----------
+
+Ugrade Notes:
+-------------
+IF upgrading from version prior to 6.5.1:
+Copy bootCD localy (eg /root/) then mount the iso image:
+> mount -o loop bootCD-NETOS6-X.X.X-KVM-x86_64.iso /media/cdrom
+Then execute auto-upgrade tool:
+> /media/cdrom/tools/auto-upgrade
+
+ELSE:
+- You can either use previous method or use ncx-system-upgrade command to update the OS.
+Example:
+copy bootCD-NETOS6-X.X.X-KVM-x86_64.iso in /root, then run
+> ncx-system-upgrade -r iso://root/bootCD-NETOS6-X.X.X-KVM-x86_64.iso
+
+
+
+#######################################################################
+DATE: 2015-03-12
+VERSION:6.5.2
+
+New Features:
+-------------
+
+Fixed Bugs:
+-----------
+ID   : None - Updated OpenVII to version 1.6.0.
+Desc : Update OpenVII to support SR-IOV in the web-app.
+
+
+Security:
+---------
+ID   : CVE-2014-0160 - OpenSSL "HEARTBLEED" critical vulnerability.
+Desc : Updated OpenSSL to version 1.0.1e-30.el6_6.5.
+
+Known Bugs:
+-----------
+- Avahi daemon does not handle OVS bridge thus KVM service announcement is not working
+  This means that in OpenVII the "Probe nodes" function won't show KVM nodes using OpenVswitch.
+
+Ugrade Notes:
+-------------
+IF upgrading from version prior to 6.5.1:
+Copy bootCD localy (eg /root/) then mount the iso image:
+> mount -o loop bootCD-NETOS6-X.X.X-KVM-x86_64.iso /media/cdrom
+Then execute auto-upgrade tool:
+> /media/cdrom/tools/auto-upgrade
+
+ELSE:
+- You can either use previous method or use ncx-system-upgrade command to update the OS.
+Example:
+copy bootCD-NETOS6-X.X.X-KVM-x86_64.iso in /root, then run
+> ncx-system-upgrade -r iso://root/bootCD-NETOS6-X.X.X-KVM-x86_64.iso
+
+
+
+#######################################################################
+DATE: 2015-01-27
+VERSION:6.5.1
+
+New Features:
+-------------
+
+Fixed Bugs:
+-----------
+ID   : INT16364 ~ Snapshot reinitialize : confusing VM state PAUSE or STOPPED
+Desc : Corrected nodemanagerd to restore a VM in its initial state.
+
+ID   : INT16363 ~ Snapshot : command ROLLBACK destroys a snapshot
+Desc : Added a warning before proceeding with the rollback.
+
+ID   : INT16362 ~ Snapshot :Task list not correctly refresh if creating or deleting
+Desc : Updated OpenVII to properly handle snapshots envents.
+
+ID   : None ~ OpenVII crash when migrating a Virtual Machine
+Desc : Updated OpenVII to version 1.4.4-2 to prevent a crash during migration
+
+ID   : CVE-2015-0235 ~ Glibc "GHOST" critical vulnerability.
+Desc : Updated Glibc to correct a heap-based buffer overflow.
+
+
+Known Bugs:
+-----------
+- Avahi daemon does not handle OVS bridge thus KVM service announcement is not working
+  This means that in OpenVII the "Probe nodes" function won't show KVM nodes using OpenVswitch.
+
+Ugrade Notes:
+-------------
+IF upgrading from version prior to 6.5.1:
+Copy bootCD localy (eg /root/) then mount the iso image:
+> mount -o loop bootCD-NETOS6-X.X.X-KVM-x86_64.iso /media/cdrom
+Then execute auto-upgrade tool:
+> /media/cdrom/tools/auto-upgrade
+
+ELSE:
+- You can either use previous method or use ncx-system-upgrade command to update the OS.
+Example:
+copy bootCD-NETOS6-X.X.X-KVM-x86_64.iso in /root, then run
+> ncx-system-upgrade -r iso://root/bootCD-NETOS6-X.X.X-KVM-x86_64.iso
+
+
+
+#######################################################################
+DATE: 2015-01-23
+VERSION:6.5.0
+
+New Features:
+-------------
+ID   : DR-0-219-664 ~ Updated ISOLINUX kernel to CentOS 6.5
+Desc : Updated boot kernel to support installs on a SR-IOV server
+
+ID   : DR-0-207-498 ~ KVM server console SSH access through the web app
+Desc : Updated OpenVII to version 1.4.4
+
+ID   : DR-0-219-665 ~ Use LVM for disk partitioning
+Desc : Create Logical Volumes for /root and /opt instead of classical partions
+
+
+Fixed Bugs:
+-----------
+ID   : Added ncurse-devel to dev profile
+Desc : Added ncurse-devel to compile the su-core
+
+ID   : PSB10412 ~ ncx-virt-cloner
+Desc : Added support for other compression methode, like gzip
+
+
+Known Bugs:
+-----------
+- Avahi daemon does not handle OVS bridge thus KVM service announcement is not working
+  This means that in OpenVII the "Probe nodes" function won't show KVM nodes using OpenVswitch.
+
+
+#######################################################################
+DATE: 2014-10-21
+VERSION:6.4.6
+
+New Features:
+-------------
+
+Fixed Bugs:
+-----------
+ID   : None ~ TCP Checksum Offload errors with OVS and VLANs
+Desc : Updated kernel to version Corrected a permission error when creating the hosting KVM server on OpenVII
+
+ID   : Added ncurse-devel to dev profile
+Desc : Added ncurse-devel to compile the su-core
+
+
+Known Bugs:
+-----------
+- Avahi daemon does not handle OVS bridge thus KVM service announcement is not working
+  This means that in OpenVII the "Probe nodes" function won't show KVM nodes using OpenVswitch.
+
+
+#######################################################################
+DATE: 2014-06-06
+VERSION:6.4.5
+
+New Features:
+-------------
+
+Fixed Bugs:
+-----------
+ID   : Cannot add a virtual machine with a KVM+OPenVII install
+Desc : Corrected a permission error when creating the hosting KVM server on OpenVII
+
+ID   : Added ncurse-devel to dev profile
+Desc : Added ncurse-devel to compile the su-core
+
+
+Known Bugs:
+-----------
+- Avahi daemon does not handle OVS bridge thus KVM service announcement is not working
+  This means that in OpenVII the "Probe nodes" function won't show KVM nodes using OpenVswitch.
+
+
+#######################################################################
+DATE: 2014-04-10
+VERSION:6.4.4
+
+New Features:
+-------------
+ID   : Update OpenVII to version 1.4.0
+Desc : Added suuport for webinshell and central https
+
+ID   : Update ncx-linux-tools to version 2.2.0
+Desc : Added ncx-virt-cloner tool to easily clone and deploy VMs
+
+Fixed Bugs:
+-----------
+Known Bugs:
+-----------
+- Avahi daemon does not handle OVS bridge thus KVM service announcement is not working
+  This means that in OpenVII the "Probe nodes" function won't show KVM nodes using OpenVswitch.
+
+
+#######################################################################
+DATE: 2014-02-07
+VERSION:6.4.3
+
+New Features:
+-------------
+
+Fixed Bugs:
+-----------
+ID   : Update ncx-linux-tools to version 2.1.0
+Desc : Added ncx-network-cfg tool to opreate OpenVSwitch bridges, Bonds
+       and Vlans.
+
+ID   : Update OpenVII to latest version
+Desc : Update OPenVII to version 1.2.6
+
+ID   : Node OpenVII migration
+Desc : Added metadata to OpenVII XML to prevent its migration
+
+ID   : KVM networking problem
+Desc : Updated openvswitch to version 1.11 for a better seprartion between
+       openvswitch and Linux Bridges.
+
+Known Bugs:
+-----------
+- Avahi daemon does not handle OVS bridge thus KVM service announcement is not working
+  This means that in OpenVII the "Probe nodes" function won't show KVM nodes using OpenVswitch.
+
+
+#######################################################################
+DATE: 2013-12-05
+VERSION:6.4.2
+
+New Features:
+-------------
+
+Fixed Bugs:
+-----------
+ID   : PSB10370 OpenVII access failure
+Desc : OpenVII network not properly created after KVM reboot
+       Updated firstboot-config to version 0.0.10
+
+- Updated OpenVII to version 1.2.3
+
+Known Bugs:
+-----------
+N/A
+
+#######################################################################
+DATE: 2013-10-21
+VERSION:6.4.1
+
+New Features:
+-------------
+
+Fixed Bugs:
+-----------
+- Error when using the physical optical drive on HP G5
+- Update firstboot-config to version 0.0.8 that correct many minor bugs
+- Moved KVM's management interface configuration within Anaconda installer
+  for a better integration.
+- Corrected a problem with OpenVswitch's brcompat module.
+- In KVM+OpenVII install, KVM server will be accessible only once OpenVII
+  has been installed.
+
+Known Bugs:
+-----------
+N/A
+
+#######################################################################
+DATE: 2013-09-12
+VERSION:6.4.0
+
+New Features:
+-------------
+- Updated OpenVII to version 1.2.0
+- Updated CentOS to version 6.4
+- Updated firstboot-config to version 0.0.7
+- Added Shellinabox
+- Added ncx-linux-tools package that provide ncx-system-upgrade command
+  This command is used to upgrade the OS. 
+
+Fixed Bugs:
+-----------
+- Error when using the physical optical drive on HP G5
+
+Known Bugs:
+-----------
+N/A
+
+#######################################################################
+DATE: 2013-08-13
+VERSION:6.3.9
+
+New Features:
+-------------
+
+Fixed Bugs:
+-----------
+- Updated OpenVII to version 1.0.9
+
+Known Bugs:
+-----------
+N/A
+
+#######################################################################
+DATE: 2013-08-07
+VERSION:6.3.8
+
+New Features:
+-------------
+
+Fixed Bugs:
+-----------
+- Updated OpenVII to version 1.0.8
+
+Known Bugs:
+-----------
+N/A
+
+#######################################################################
+DATE: 2013-08-05
+VERSION:6.3.7
+
+New Features:
+-------------
+
+Fixed Bugs:
+-----------
+- Updated OpenVII to version 1.0.7
+
+Known Bugs:
+-----------
+N/A
+
+#######################################################################
+DATE: 2013-08-02
+VERSION:6.3.6
+
+New Features:
+-------------
+- Added openvswitch and kmod-openvswitch packages to KVM profile.
+
+
+Fixed Bugs:
+-----------
+- Updated OpenVII to version 1.0.6
+
+Known Bugs:
+-----------
+N/A
+
+#######################################################################
+DATE: 2013-07-05
+VERSION:6.3.5
+
+New Features:
+-------------
+
+Fixed Bugs:
+-----------
+- Updated firstboot-config to version 0.0.5: correct en error in 
+  postresql "authentication" table creation.
+
+Known Bugs:
+-----------
+N/A
+
+#######################################################################
+DATE: 2013-04-18
+VERSION:6.3.3
+
+New Features:
+-------------
+
+Fixed Bugs:
+-----------
+- Updated OpenVII to version 1.0.3
+
+Known Bugs:
+-----------
+N/A
+
+#######################################################################
+DATE: 2013-04-11
+VERSION:6.3.2
+
+New Features:
+-------------
+
+Fixed Bugs:
+-----------
+- Updated OpenVII to version 1.0.1
+Updated firstboot package to version 0.0.3
+
+Known Bugs:
+-----------
+N/A
+
+#######################################################################
+DATE: 2013-03-21
+VERSION:6.3.1-rc1
+
+New Features:
+-------------
+
+Fixed Bugs:
+-----------
+- Updated OpenVII to version 1.0.0
+- Updated nodemanager to version 1.0.0
+- Updated firstboot package to version 0.0.2
+
+Known Bugs:
+-----------
+N/A
+
+#######################################################################
+DATE: 2013-02-15
+VERSION:6.3.0-01
+
+New Features:
+-------------
+- Added OpenVII RPM
+- Added tunings for OpenVII when running in a KVM guest
+- Added a KVM + OpenVII install option
+- Added a tool to reorder network interfaces
+
+Fixed Bugs:
+-----------
+- Updated nodemanager RPM
+
+Known Bugs:
+-----------
+N/A
+
+#######################################################################
+DATE: 2012-08-13
+VERSION:6.3.0-rc2
+
+New Features:
+-------------
+- Added Tuned rpm to kvm profile
+  and set profile to virtual-host (tuned-adm profile virtual-host)
+
+Fixed Bugs:
+-----------
+N/A
+
+Known Bugs:
+-----------
+N/A
+
+#######################################################################
+DATE: 2012-07-31
+VERSION:6.3.0-rc0
+
+New Features:
+-------------
+- Updated To CentOS 6.3
+
+Fixed Bugs:
+-----------
+N/A
+
+Known Bugs:
+-----------
+N/A
+
+#######################################################################
+DATE: 2012-07-02
+VERSION:6.1.1-rc3
+
+New Features:
+-------------
+- Changed name to OpenVII
+- Added qemu package for non-hvm virtualization
+
+Fixed Bugs:
+-----------
+N/A
+
+Known Bugs:
+-----------
+N/A
+
+#######################################################################
+DATE: 2012-03-08
+VERSION:6.1.0-rc3
+
+New Features:
+-------------
+- Remove uneeded RPMS
+
+Fixed Bugs:
+-----------
+N/A
+
+Known Bugs:
+-----------
+N/A
+
+#######################################################################
+</br>
+</body>
+</html>

@@ -1,0 +1,369 @@
+Added tmp repo from file:/opt/repo/system/6/rhel/os/i386
+Reading in repository metadata - please wait....
+Checking Dependencies
+Repos looked at: 1
+   tmp
+Num Packages in Repos: 1668
+package: GConf2-devel-2.28.0-6.el6.i686 from tmp
+  unresolved deps: 
+     pkgconfig(glib-2.0)
+     pkgconfig(dbus-1)
+     pkgconfig(ORBit-2.0)
+     glib2-devel >= 0:2.14.0
+     ORBit2-devel >= 0:2.8.0
+package: anaconda-13.21.215-1.el6.i686 from tmp
+  unresolved deps: 
+     zenity
+     tigervnc-server
+     makebootfat
+     libuser-python
+     libnm-util.so.1
+     libnm-glib.so.2
+     libarchive.so.2
+     libarchive
+     isomd5sum
+     cracklib-python
+     comps-extras
+     NetworkManager >= 1:0.7.1-3.git20090414
+package: ant-1.7.1-13.el6.i686 from tmp
+  unresolved deps: 
+     xerces-j2
+package: ant-apache-bsf-1.7.1-13.el6.i686 from tmp
+  unresolved deps: 
+     bsf
+package: ant-apache-oro-1.7.1-13.el6.i686 from tmp
+  unresolved deps: 
+     oro
+package: ant-commons-net-1.7.1-13.el6.i686 from tmp
+  unresolved deps: 
+     jakarta-commons-net
+package: ant-jdepend-1.7.1-13.el6.i686 from tmp
+  unresolved deps: 
+     jdepend
+package: ant-jsch-1.7.1-13.el6.i686 from tmp
+  unresolved deps: 
+     jsch
+package: ant-junit-1.7.1-13.el6.i686 from tmp
+  unresolved deps: 
+     junit
+package: ant-trax-1.7.1-13.el6.i686 from tmp
+  unresolved deps: 
+     jaxp_transform_impl
+package: apache-jasper-5.5.28-3.el6.noarch from tmp
+  unresolved deps: 
+     java-1.6.0-devel
+     jakarta-commons-el >= 0:1.0
+package: authd-1.4.3-31.el6_4.i686 from tmp
+  unresolved deps: 
+     xinetd
+package: cluster-cim-0.16.2-28.el6.i686 from tmp
+  unresolved deps: 
+     tog-pegasus
+package: dbus-glib-devel-0.86-6.el6_4.i686 from tmp
+  unresolved deps: 
+     pkgconfig(gobject-2.0)
+     pkgconfig(glib-2.0)
+     pkgconfig(dbus-1)
+     glib2-devel
+     dbus-devel
+     pkgconfig(gobject-2.0)
+     pkgconfig(glib-2.0)
+     pkgconfig(dbus-1)
+     glib2-devel
+     dbus-devel
+package: finger-server-0.17-39.el6.i686 from tmp
+  unresolved deps: 
+     xinetd
+package: gcc-gnat-4.4.7-4.el6.i686 from tmp
+  unresolved deps: 
+     libgnat-devel = 0:4.4.7-4.el6
+     libgnat = 0:4.4.7-4.el6
+package: gd-devel-2.0.35-11.el6.i686 from tmp
+  unresolved deps: 
+     libpng-devel
+     libjpeg-devel
+     libXpm-devel
+     fontconfig-devel
+package: ghc-GLUT-2.1.2.1-13.el6.i686 from tmp
+  unresolved deps: 
+     libglut.so.3
+     libGLU.so.1
+package: ghc-GLUT-devel-2.1.2.1-13.el6.i686 from tmp
+  unresolved deps: 
+     freeglut-devel(x86-32)
+package: ghc-OpenGL-devel-2.2.3.0-12.el6.i686 from tmp
+  unresolved deps: 
+     mesa-libGLU-devel(x86-32)
+     mesa-libGL-devel(x86-32)
+package: ghc-X11-devel-1.5.0.1-2.el6.i686 from tmp
+  unresolved deps: 
+     libXinerama-devel(x86-32)
+     libXext-devel(x86-32)
+package: ghc-X11-xft-devel-0.3.1-3.el6.i686 from tmp
+  unresolved deps: 
+     libXft-devel(x86-32)
+package: ghc-base-devel-4.3.1.0-46.el6.i686 from tmp
+  unresolved deps: 
+     libffi-devel
+     gmp-devel
+package: ghc-cairo-devel-0.12.2-2.el6.i686 from tmp
+  unresolved deps: 
+     cairo-devel(x86-32)
+package: ghc-gio-devel-0.12.2-2.el6.i686 from tmp
+  unresolved deps: 
+     glib2-devel(x86-32)
+package: ghc-glib-devel-0.12.2-2.el6.i686 from tmp
+  unresolved deps: 
+     glib2-devel(x86-32)
+package: ghc-gtk-devel-0.12.2-2.3.el6.i686 from tmp
+  unresolved deps: 
+     gtk2-devel(x86-32)
+package: ghc-hs-bibutils-4.15-2.el6.i686 from tmp
+  unresolved deps: 
+     libbibutils.so.4
+package: ghc-hs-bibutils-devel-4.15-2.el6.i686 from tmp
+  unresolved deps: 
+     pkgconfig(bibutils)
+package: ghc-pango-devel-0.12.2-2.el6.i686 from tmp
+  unresolved deps: 
+     pango-devel(x86-32)
+package: ghc-rpm-macros-0.15.16-1.el6.i686 from tmp
+  unresolved deps: 
+     redhat-rpm-config
+     hscolour
+package: infiniband-diags-1.5.12-5.el6.i686 from tmp
+  unresolved deps: 
+     libosmcomp.so.3(OSMCOMP_2.3)
+     libosmcomp.so.3
+     libibumad.so.3(IBUMAD_1.0)
+     libibumad.so.3
+     libibmad.so.5(IBMAD_1.3)
+     libibmad.so.5
+package: ipa-server-3.0.0-37.el6.i686 from tmp
+  unresolved deps: 
+     slapi-nis >= 0:0.40
+     mod_wsgi
+     mod_nss >= 0:1.0.8-18
+     389-ds-base >= 0:1.2.11.15-14
+package: iptstate-2.2.2-4.el6.i686 from tmp
+  unresolved deps: 
+     libnetfilter_conntrack.so.3
+package: java-1.5.0-gcj-devel-1.5.0.0-29.1.el6.i686 from tmp
+  unresolved deps: 
+     libgcj-src >= 0:4.1.2-5
+package: krb5-appl-servers-1.0.1-7.el6_2.1.i686 from tmp
+  unresolved deps: 
+     xinetd
+     xinetd
+package: krb5-auth-dialog-0.13-3.el6.i686 from tmp
+  unresolved deps: 
+     libnotify.so.1
+     libgnomeui >= 0:2.9.1
+package: krb5-server-1.10.3-10.el6_4.6.i686 from tmp
+  unresolved deps: 
+     /usr/share/dict/words
+package: libglade2-devel-2.6.4-3.1.el6.i686 from tmp
+  unresolved deps: 
+     pkgconfig(gtk+-2.0)
+     gtk2-devel >= 0:2.5.0
+package: librdmacm-devel-1.0.17-1.el6.i686 from tmp
+  unresolved deps: 
+     libibverbs-devel(x86-32)
+package: libvirt-cim-0.6.1-9.el6.i686 from tmp
+  unresolved deps: 
+     libcmpiutil.so.0
+     cim-server
+package: mesa-dri-drivers-9.2-0.5.el6.i686 from tmp
+  unresolved deps: 
+     libLLVM-3.3-mesa.so(libLLVM-3.3-mesa.so)
+     libLLVM-3.3-mesa.so
+package: mpfr-devel-2.4.1-6.el6.i686 from tmp
+  unresolved deps: 
+     gmp-devel
+package: ncx-virt-tools-2.4.1-1.netos6.noarch from tmp
+  unresolved deps: 
+     libguestfs-tools >= 0:1.20
+package: opencryptoki-libs-2.4.3.1-1.el6.i686 from tmp
+  unresolved deps: 
+     libtspi.so.1
+package: openwsman-client-2.2.3-8.el6.i686 from tmp
+  unresolved deps: 
+     libwsman_curl_client_transport.so.1
+     libwsman_client.so.1
+     libwsman1 = 0:2.2.3-8.el6
+     libwsman.so.1
+package: openwsman-server-2.2.3-8.el6.i686 from tmp
+  unresolved deps: 
+     libwsman_curl_client_transport.so.1
+     libwsman_client.so.1
+     libwsman1 = 0:2.2.3-8.el6
+     libwsman.so.1
+     libcmpisfcc.so.1(CMPISFCC_2.0)
+     libcmpisfcc.so.1
+package: pacemaker-libs-devel-1.1.10-14.el6.i686 from tmp
+  unresolved deps: 
+     pacemaker-cts = 0:1.1.10-14.el6
+     libtool-ltdl-devel
+     glib2-devel
+     bzip2-devel
+     pacemaker-cts = 0:1.1.10-14.el6
+     libtool-ltdl-devel
+     glib2-devel
+     bzip2-devel
+package: pam_pkcs11-0.6.2-12.1.el6.i686 from tmp
+  unresolved deps: 
+     libpcsclite.so.1
+package: perl-Date-Manip-6.24-1.el6.noarch from tmp
+  unresolved deps: 
+     perl(YAML::Syck)
+package: perl-SGMLSpm-1.03ii-21.el6.noarch from tmp
+  unresolved deps: 
+     openjade
+package: perl-Term-ProgressBar-2.09-10.el6.noarch from tmp
+  unresolved deps: 
+     perl(Term::ReadKey) >= 0:2.14
+     perl(Class::MethodMaker) >= 0:1.02
+package: pessulus-2.28.0-1.el6.noarch from tmp
+  unresolved deps: 
+     gnome-python2-gconf
+     gnome-python2-desktop
+     gnome-python2-bugbuddy
+package: pki-common-9.0.3-32.el6.noarch from tmp
+  unresolved deps: 
+     velocity
+     tomcatjss >= 0:2.0.0
+     jss >= 0:4.2.6-12
+     jakarta-commons-lang
+     /usr/share/java/xerces-j2.jar
+     /usr/share/java/xalan-j2.jar
+     /usr/share/java/xalan-j2-serializer.jar
+     /usr/share/java/velocity.jar
+     /usr/share/java/ldapjdk.jar
+package: pki-symkey-9.0.3-32.el6.i686 from tmp
+  unresolved deps: 
+     jss >= 0:4.2.6-12
+package: pki-util-9.0.3-32.el6.noarch from tmp
+  unresolved deps: 
+     ldapjdk
+     jss >= 0:4.2.6-12
+package: python-enchant-1.3.1-5.2.el6.i686 from tmp
+  unresolved deps: 
+     libenchant.so.1
+package: python-gtkextra-1.1.0-10.el6.i686 from tmp
+  unresolved deps: 
+     libgtkextra-x11-2.0.so.1
+package: python-meh-0.12.1-3.el6.noarch from tmp
+  unresolved deps: 
+     libreport-newt >= 0:2.0.9
+     libreport-gtk >= 0:2.0.9
+package: python-saslwrapper-0.14-1.el6.i686 from tmp
+  unresolved deps: 
+     saslwrapper = 0:0.14-1.el6
+     libsaslwrapper.so.1
+package: python-sexy-0.1.9-9.1.el6.i686 from tmp
+  unresolved deps: 
+     libsexy.so.2
+     libsexy >= 0:0.1.10
+package: python-twisted-conch-8.2.0-3.2.el6.i686 from tmp
+  unresolved deps: 
+     tkinter
+package: python-volume_key-0.3.1-5.el6.i686 from tmp
+  unresolved deps: 
+     volume_key-libs = 0:0.3.1-5.el6
+     libvolume_key.so.1
+package: redhat-lsb-4.0-7.el6.i686 from tmp
+  unresolved deps: 
+     redhat-lsb-printing(x86-32) = 0:4.0-7.el6
+     redhat-lsb-graphics(x86-32) = 0:4.0-7.el6
+     redhat-lsb-core(x86-32) = 0:4.0-7.el6
+     redhat-lsb-compat(x86-32) = 0:4.0-7.el6
+package: redhat-lsb-4.0-8.ncx.i386 from tmp
+  unresolved deps: 
+     redhat-lsb-printing(x86-32) = 0:4.0-8.ncx
+     redhat-lsb-graphics(x86-32) = 0:4.0-8.ncx
+     redhat-lsb-compat(x86-32) = 0:4.0-8.ncx
+package: rpmdevtools-7.5-2.el6.noarch from tmp
+  unresolved deps: 
+     fakeroot
+package: selinux-policy-minimum-3.7.19-231.el6.noarch from tmp
+  unresolved deps: 
+     policycoreutils-python >= 0:2.0.78-1
+package: selinux-policy-mls-3.7.19-231.el6.noarch from tmp
+  unresolved deps: 
+     setransd
+     policycoreutils-newrole >= 0:2.0.78-1
+package: spice-client-0.8.2-15.el6.i686 from tmp
+  unresolved deps: 
+     libcacard.so.0
+package: spice-xpi-2.7-24.el6.i686 from tmp
+  unresolved deps: 
+     virt-viewer >= 0:0.5.2-4
+     log4cpp
+     liblog4cpp.so.4
+     firefox
+package: svnkit-1.3.0-3.el6.i686 from tmp
+  unresolved deps: 
+     trilead-ssh2 >= 0:213
+     subversion-javahl >= 0:1.5
+     eclipse-platform
+package: system-config-date-1.9.60-2.el6.noarch from tmp
+  unresolved deps: 
+     usermode-gtk >= 0:1.94
+     system-config-date-docs
+     gnome-python2-canvas
+package: system-config-kdump-2.0.5-15.el6.noarch from tmp
+  unresolved deps: 
+     yelp
+package: system-config-keyboard-1.3.1-5.el6.i686 from tmp
+  unresolved deps: 
+     system-config-keyboard-base = 0:1.3.1-5.el6
+     pyxf86config
+package: system-config-language-1.3.4-6.el6.noarch from tmp
+  unresolved deps: 
+     usermode-gtk >= 0:1.36
+package: system-config-lvm-1.1.12-16.el6.noarch from tmp
+  unresolved deps: 
+     usermode-gtk
+     gnome-python2-gnome
+     gnome-python2-canvas
+     gnome-python2-bonobo
+     gnome-python2
+package: system-config-printer-1.1.16-23.el6.i686 from tmp
+  unresolved deps: 
+     notify-python
+     gnome-python2-gnomekeyring
+     gnome-icon-theme
+     desktop-notification-daemon
+package: system-config-printer-libs-1.1.16-23.el6.i686 from tmp
+  unresolved deps: 
+     libsmbclient.so.0
+package: system-config-services-0.99.45-1.el6.3.noarch from tmp
+  unresolved deps: 
+     gamin-python
+package: system-config-services-docs-1.1.8-1.el6.noarch from tmp
+  unresolved deps: 
+     yelp
+package: system-config-users-1.2.106-7.el6.noarch from tmp
+  unresolved deps: 
+     usermode-gtk >= 0:1.94
+     libuser-python >= 0:0.56
+     cracklib-python >= 0:2.8.6
+package: system-config-users-docs-1.0.8-2.el6.noarch from tmp
+  unresolved deps: 
+     yelp
+package: texinfo-tex-4.13a-8.el6.i686 from tmp
+  unresolved deps: 
+     tetex
+     /usr/bin/texconfig-sys
+     /usr/bin/texconfig-sys
+package: tftp-server-0.49-7.el6.i686 from tmp
+  unresolved deps: 
+     xinetd
+package: udisks-1.0.1-4.el6.i686 from tmp
+  unresolved deps: 
+     smp_utils >= 0:0.94
+     libatasmart.so.4
+     libatasmart >= 0:0.12
+package: wireshark-1.8.10-4.el6.i686 from tmp
+  unresolved deps: 
+     libsmi.so.2

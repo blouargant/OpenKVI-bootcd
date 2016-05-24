@@ -1,0 +1,804 @@
+#!/bin/sh
+#Description: Script to upgrate a CentOS System
+#
+#rq: if syntax highligt is not correctly set, then use the command
+#    :set syn=sh
+
+
+RPM_VERSION=2.4.5
+
+function handle_interup()
+{
+	for aPid in $PID_LIST; do
+		kill -15 $aPid
+	done
+	echo ""
+	exit -1
+}
+INT_GEST=handle_interup
+trap '$INT_GEST' INT
+
+
+function help()
+{
+	echo "        auto-upgrade version $RPM_VERSION"
+	echo ""
+	echo "Usage: auto-upgrade [OPTION]...  -r REPOSITORY ..."
+	echo "Options:"
+	if [ -z "$AUTO_UPDATE" ]; then
+		echo " -r, --repodata [REPOSITORY]"
+		echo "  # Valid options are :"
+		echo "  # cdrom                   : set repository to local cdrom tray"
+		echo "  # "
+		echo "  # iso://path_to_iso_file  : use an iso as a local repository"
+		echo "  # file://path_to_repo_dir : set repository to a local directory"
+		echo "  # ftp://server_ip/repo    : set repository to a remote ftp server"
+		echo "  # http://server_ip/repo   : set repository to a remote http server"
+		echo "  # nfs://server_ip/repo    : set repository to a remote nfs server"
+		echo "  # "
+		echo "  # Note: if the repository type is not specified then "
+		echo "          auto-upgrade will try to guess it"
+		echo ""
+		echo " -p, --profile [PROFILE]    : set profile name"
+	fi
+	echo ' -y, --yes                  : reply "yes" to all questions'
+	echo '                              "yes" is assumed in non verbose mode'
+	echo " -v, --verbose              : increase verbosity"
+	if [ -z "$AUTO_UPDATE" ]; then
+		echo " -k                         : keep repository after upgrade"
+		echo " -K                         : keep repository after upgrade"
+	fi
+	echo "                              and make it the main repository"
+	echo " -h, --help                 : show this help message and exit"
+	echo ""
+}
+
+
+function valid_ip()
+{
+	local  ip=$1
+	local  stat=1
+	
+	if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+		OIFS=$IFS
+		IFS='.'
+		ip=($ip)
+		IFS=$OIFS
+		[[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
+		stat=$?
+	fi
+	return $stat
+}
+
+function wait_process()
+{
+	WAIT_PID=$1
+	PID_LIST="$PID_LIST $WAIT_PID"
+	
+	count=0
+	char=""
+	blankline="                            "
+	blackline="============================"
+	dir=0
+	while ps -p $WAIT_PID 1>/dev/null 2>&1; do
+		: $((count=count+1))
+		if [ $count -eq 29 ]; then
+			count=0
+			char=""
+			if [ $dir -eq 0 ]; then
+				echo -ne "\r[$blackline]"
+				dir=1
+			elif [ $dir -eq 1 ]; then
+				echo -ne "\r[$blankline]"
+				dir=2
+			elif [ $dir -eq 2 ]; then
+				echo -ne "\r[$blackline]"
+				dir=3
+			elif [ $dir -eq 3 ]; then
+				echo -ne "\r[$blankline]"
+				dir=0
+			fi
+		else
+			if [ $dir -eq 0 ]; then
+				char="$char="
+				echo -ne "\r[$char${blankline:$count}]"
+			elif [ $dir -eq 1 ]; then 
+				char="$char "
+				echo -ne "\r[$char${blackline:$count}]"
+			elif [ $dir -eq 2 ]; then 
+				char="$char="
+				echo -ne "\r[${blankline:$count}$char]"
+			elif [ $dir -eq 3 ]; then 
+				char="$char "
+				echo -ne "\r[${blackline:$count}$char]"
+			fi
+	
+		fi
+		sleep 0.1
+	done
+	
+	echo -ne "\r[$blackline]"
+	echo ""
+	echo "Done."
+	TMP_LIST=`echo "$PID_LIST" | sed -e "s/ *$WAIT_PID//"`
+	PID_LIST=$TMP_LIST
+	
+}
+
+function check_yum_errors()
+{
+	ERRORS=""
+	ERRORS=$(cat /tmp/$TMPDIR/yum.error | grep -v "Trying other mirror" | grep -v "repomd.xml")
+	if [ "$ERRORS" ]; then
+		cat /tmp/$TMPDIR/yum.error | grep -v "Trying other mirror" | grep -v "repomd.xml"
+		echo "An error occured, exiting process"
+		error_exit
+	fi
+}
+
+function check_ks()
+{
+	CONTINUE_UPGRADE=0
+	cd /tmp/$TMPDIR
+	echo "Searching profile $PROFILE"
+	for ks in *.cfg
+	do
+		echo $ks
+		KS_SRC=`echo $ks | sed -e "s/\.cfg//" | sed -e "s/^...//"`
+		if [ "$KS_SRC" == "$PROFILE" ]; then
+			CONTINUE_UPGRADE=1
+		fi
+	done
+	if [ "$CONTINUE_UPGRADE" == "0" ]; then
+		echo "The profile $PROFILE doesn't exist"
+		error_exit
+	fi
+}
+
+function get_ks_rpms()
+{
+	local FCT_PROFILE=$1
+	local FCT_CFG="/tmp/$TMPDIR/ks_$FCT_PROFILE.cfg"
+	local FCT_RPMLIST_ALL=$(grep -A 200 "%package" $FCT_CFG | grep -B 200 "%pre" | grep -v "%pre" | grep -v "%packages" | grep -v "^#" | grep -v "^-")
+	local FCT_RPMLIST=$(echo -e "$FCT_RPMLIST_ALL" | grep -v "^%include")
+	local FCT_RPMLIST_ADD=$(echo -e "$FCT_RPMLIST" | grep -v "^@")
+	local FCT_COMPS_LIST=$(echo -e "$FCT_RPMLIST" | grep "^@" | sed -e "s/^@//" | sed -e "s/^ //")
+	local FCT_INCLUDES=$(echo -e "$FCT_RPMLIST_ALL" | grep "^%include" | sed -e "s/%include //")
+	
+	# %include conditional install
+	echo "$FCT_INCLUDES" > /tmp/toto
+	echo "" >> /tmp/toto
+	if [ "$FCT_INCLUDES" ]; then
+		local FCT_PRE=$(grep -A 200 "^%pre" $FCT_CFG | grep -B 200 "^%post$\|^%post --log" | grep -v "%pre" | grep -v "%post" | grep -v "^#" | grep -v "^-")
+		echo "#/bin/bash" > /tmp/pre.tmp
+		echo -e "$FCT_PRE" | while read line; do
+			IS_VAR=$(echo "$line" | grep "^[a-zA-Z]*=")
+			IS_IF=$(echo "$line" | grep "^if ")
+			IS_FI=$(echo "$line" | grep "^fi")
+			echo -e "$FCT_INCLUDES" | while read inc_line; do
+				IS_INC=$(echo "$line" | grep " $inc_line")
+				if [ "$IS_INC" ]; then
+					echo "$IS_INC" >> /tmp/pre.tmp
+					break
+				fi
+			done
+			if [ "$IS_VAR" ]; then 
+				echo "$IS_VAR" >> /tmp/pre.tmp
+			elif [ "$IS_IF" ]; then
+				echo "$IS_IF" >> /tmp/pre.tmp
+			elif [ "$IS_FI" ]; then
+				echo "$IS_FI" >> /tmp/pre.tmp
+			fi
+		done
+		cat /tmp/pre.tmp | perl -p -i -e "s/then *\n$/then /" | grep -v "then fi" | sed -e "s/then /then\n/" > /tmp/pre.sh
+		sh /tmp/pre.sh
+	fi
+	
+	echo -e "$FCT_RPMLIST_ADD" > /tmp/rpms2include
+	
+	echo -e "$FCT_INCLUDES" | while read inc_file; do
+		cat $inc_file >> /tmp/rpms2include
+	done
+	FCT_RPMLIST_ADD=$(grep -v "^#\|^$" /tmp/rpms2include)
+
+	echo "" > /tmp/test
+	for COMP in $FCT_COMPS_LIST ; do
+		echo "## $COMP ##" >> /tmp/test
+		COMPS_RPM=$(cat /tmp/$TMPDIR/repodata/groups/$COMP)
+		echo -e "$COMPS_RPM" >> /tmp/test
+		FCT_RPMLIST_ADD="$COMPS_RPM $FCT_RPMLIST_ADD"
+	done
+	
+	echo -e "$FCT_RPMLIST_ADD"
+}
+
+function get_ks_rpms_to_remove()
+{
+	local FCT_PROFILE=$1
+	local FCT_CFG="/tmp/$TMPDIR/ks_$FCT_PROFILE.cfg"
+	local FCT_RPMLIST_REMOVE=$(grep -A 200 "%package" $FCT_CFG | grep -B 200 "%pre" | grep -v "%pre" | grep -v "%packages" | grep -v "^#" | grep "^-" | sed -e "s/^-//")
+	echo -e "$FCT_RPMLIST_REMOVE"
+}
+
+function parse_ks()
+{
+	REMOVE_FIRST=""
+	KS_CFG="/tmp/$TMPDIR/ks_$PROFILE.cfg"
+	NEW_VER=$(cat $KS_CFG | grep "^VERSION=" | sed -e "s/VERSION=//"| sed -e "s/\"//g")
+	DISTRIB=$(cat $KS_CFG | grep "^DISTRIB=" | sed -e "s/DISTRIB=//" | sed -e "s/\"//g")
+	NEW_PROFILE="$DISTRIB [upgraded: "$(date +%F)", profile: $PROFILE_NAME, version: $NEW_VER]"
+	
+	RPMLIST_ADD=$(get_ks_rpms $PROFILE)
+	RPMLIST_REMOVE=$(get_ks_rpms_to_remove $PROFILE)
+	
+	POST_CMDS=$(/bin/grep -A 200 "%post" /tmp/$TMPDIR/ks_$PROFILE.cfg |/bin/grep -v "%post")
+	
+	if [ "$PROFILE" != "$OLD_PROFILE" ]; then
+		OLD_RPMLIST_ADD=$(get_ks_rpms $OLD_PROFILE)
+		
+		for apackage in $OLD_RPMLIST_ADD ; do
+			TEST=`echo $RPMLIST_ADD | grep $apackage`
+			if [ -z "$TEST" ]; then
+				if [ -z "$REMOVE_FIRST" ]; then
+					REMOVE_FIRST=$apackage
+				else
+					REMOVE_FIRST=$REMOVE_FIRST" "$apackage
+				fi
+			fi
+		done
+	fi
+}
+
+
+
+function create_yum_repo()
+{
+	#mkdir -p /tmp/$TMPDIR/repos
+	#mv -f /etc/yum.repos.d/*.repo /tmp/$TMPDIR/repos/
+	TMPPATH=`echo $PATH_REPODATA | sed -e "s/\/$//"`
+	
+	if [ "$REPO_TYPE" = "local" ] ; then
+		for aPath in $TMPPATH; do
+			if [ -z $BASEURL ]; then
+				BASEURL="file://$aPath"
+			else
+				TMPURL="$BASEURL"
+				BASEURL="$TMPURL\n\tfile://$aPath"
+			fi
+		done
+	else
+		BASEURL=$TMPPATH
+	fi
+	
+	echo "## Created by auto-upgrade script" > /etc/yum.repos.d/os_update.repo
+	echo "[os_update]" >>  /etc/yum.repos.d/os_update.repo
+	echo "name=OS $REPO_TYPE update repository" >>  /etc/yum.repos.d/os_update.repo
+	echo -e "baseurl=$BASEURL" >>  /etc/yum.repos.d/os_update.repo
+	echo "gpgcheck=0" >>  /etc/yum.repos.d/os_update.repo
+	cp /etc/yum.repos.d/os_update.repo /tmp/
+}
+
+function upgrade()
+{
+	yum clean all 1>/dev/null 2>&1
+	echo "" && echo "Step 1: Checking for RPMs to remove ..."
+	
+	REMOVE_FIRST=$(echo -e $REMOVE_FIRST | sed -e "s/\n//")
+	if [ "$PROFILE" != "$OLD_PROFILE" ]; then
+		echo "  -> Removing old RPMs ..."
+		if [ "$REMOVE_FIRST" ]; then
+			if [ "$VERBOSE" == "FALSE" ]; then
+				echo "#/bin/bash" > /tmp/$TMPDIR/yum_script.sh
+				echo "$YUM --disablerepo='*' --enablerepo='os_update' -q remove $REMOVE_FIRST 1>/dev/null 2>/tmp/$TMPDIR/yum.error" >> /tmp/$TMPDIR/yum_script.sh
+				sh /tmp/$TMPDIR/yum_script.sh &
+				CPID=$!
+				wait_process $CPID
+			else
+				$YUM --disablerepo='*' --enablerepo='os_update' remove $REMOVE_FIRST 2>/tmp/$TMPDIR/yum.error
+			fi
+			check_yum_errors
+		fi
+	fi
+	
+	RPMLIST_REMOVE=$(echo -e $RPMLIST_REMOVE | sed -e "s/\n//")
+	if [ "$RPMLIST_REMOVE" ]; then 
+		echo "  -> Removing unneeded RPMs ..."
+		if [ "$VERBOSE" == "FALSE" ]; then
+			echo "#/bin/bash" > /tmp/$TMPDIR/yum_script.sh
+			echo "$YUM --disablerepo='*' --enablerepo='os_update' -q remove $RPMLIST_REMOVE 1>/dev/null 2>/tmp/$TMPDIR/yum.error" >> /tmp/$TMPDIR/yum_script.sh
+			sh /tmp/$TMPDIR/yum_script.sh &
+			CPID=$!
+			wait_process $CPID
+		else
+			$YUM --disablerepo='*' --enablerepo='os_update' remove $RPMLIST_REMOVE 2>/tmp/$TMPDIR/yum.error
+		fi
+		cat /tmp/$TMPDIR/yum.error | grep -v "No Match for argument:" > /tmp/$TMPDIR/yum.error.mod
+		rm -f /tmp/$TMPDIR/yum.error
+		mv /tmp/$TMPDIR/yum.error.mod /tmp/$TMPDIR/yum.error
+		check_yum_errors
+	fi
+	
+	echo "Step 2: Updating RPMS ..."
+	if [ "$VERBOSE" == "FALSE" ]; then
+		echo "#/bin/bash" > /tmp/$TMPDIR/yum_script.sh
+		echo "$YUM --disablerepo='*' --enablerepo='os_update' -q upgrade 1>/dev/null 2>/tmp/$TMPDIR/yum.error" >> /tmp/$TMPDIR/yum_script.sh
+		sh /tmp/$TMPDIR/yum_script.sh &
+		CPID=$!
+		wait_process $CPID
+	else
+		$YUM --disablerepo='*' --enablerepo='os_update' upgrade 2>/tmp/$TMPDIR/yum.error
+	fi
+	check_yum_errors
+	
+	RPMLIST_ADD=$(echo -e $RPMLIST_ADD | sed -e "s/\n//")
+	echo "Step 3: Installing new RPMS ..."
+	if [ "$VERBOSE" == "FALSE" ]; then
+		echo "#/bin/bash" > /tmp/$TMPDIR/yum_script.sh
+		echo "$YUM --disablerepo='*' --enablerepo='os_update' -q install $RPMLIST_ADD 1>/dev/null 2>/tmp/$TMPDIR/yum.error" >> /tmp/$TMPDIR/yum_script.sh
+		sh /tmp/$TMPDIR/yum_script.sh &
+		CPID=$!
+		wait_process $CPID
+	else
+		$YUM --disablerepo='*' --enablerepo='os_update' install $RPMLIST_ADD 2>/tmp/$TMPDIR/yum.error
+	fi
+	check_yum_errors
+}
+
+
+function post_upgrade()
+{
+	#step 4: log upgrade & update centos-release
+	cp -f /var/log/yum.log /root/upgrade.log
+	#mv -f /tmp/$TMPDIR/repos/*.repo /etc/yum.repos.d/
+	if [ "$KEEPREPO" == "FALSE" ]; then
+		rm -f /etc/yum.repos.d/os_update.repo
+	else 
+		REPOS=$(ls /etc/yum.repos.d/ | grep -v os_update.repo)
+		for AREPO in REPOS; do
+			perl -p -i -e "s/^enabled=.*/enabled=0/" /etc/yum.repos.d/$AREPO 2>/dev/null
+		done
+		mv /etc/yum.repos.d/os_update.repo /etc/yum.repos.d/os_main.repo
+	fi
+	
+	PREVIOUS_PROFILE=$(cat $RELEASE_FILE | tail -n1 | sed -e "s/upgraded:.*, profile/profile/")
+	STRIPPED_NEW=$(echo $NEW_PROFILE | sed -e "s/upgraded:.*, profile/profile/")
+	if [ "$STRIPPED_NEW" != "$PREVIOUS_PROFILE" ]; then
+		perl -p -i -e "s/^$NEW_PROFILE\n//" $RELEASE_FILE
+		echo $NEW_PROFILE >> $RELEASE_FILE
+	fi
+}
+
+
+function error_exit()
+{
+	echo "Upgrade aborted"
+	TEST=`file /tmp/$TMPDIR/cdrom | grep "link"`
+	if [ "$TEST" ]; then
+		rm /tmp/$TMPDIR/cdrom
+	elif [ -d /tmp/$TMPDIR/cdrom ]; then
+		umount /tmp/$TMPDIR/cdrom 2>/dev/null
+	fi
+	rm -f /etc/yum.repos.d/os_update.repo 2>/dev/null
+	#mv -f /tmp/$TMPDIR/repos/*.repo /etc/yum.repos.d/ 2>/dev/null
+	rm -rf /tmp/$TMPDIR 2>/dev/null
+	exit -1
+}
+
+function clean_exit()
+{
+	TEST=`file /tmp/$TMPDIR/cdrom | grep "link"`
+	if [ "$TEST" ]; then
+		rm /tmp/$TMPDIR/cdrom
+	elif [ -d /tmp/$TMPDIR/cdrom ]; then
+		umount /tmp/$TMPDIR/cdrom 2>/dev/null
+	fi
+	rm -rf /tmp/$TMPDIR 1>/dev/null 2>&1
+	exit 0
+}
+
+function check_ver_ncxtools()
+{
+	echo "Checking for an updated version of ncx-linux-tools ..."
+	
+	INSTALLED=$(rpm -qa |/bin/grep  ncx-linux-tools -c)
+	if [ $INSTALLED == 1 ]; then
+		VER_INSTALLED=$(rpm -qi ncx-linux-tools | grep "^Version *:" | sed -e "s/Version *: //" | sed -e "s/ .*//")
+		RELEASE_INSTALLED=$(rpm -qi ncx-linux-tools | grep "^Release *:" | sed -e "s/Release *: //" | sed -e "s/ .*//")
+		VERSION_INSTALLED="$VER_INSTALLED-$RELEASE_INSTALLED"
+	fi
+	
+	if [ "$REPO_TYPE" == "local" ]; then
+		TOOL_PATH=$(find $PATH_REPO/ -name "ncx-linux-tools*.noarch.rpm")
+		cp $TOOL_PATH /tmp/$TMPDIR > /dev/null 2>&1
+	else
+		wget -r -nd -np "$PATH_PACKAGES" -P "/tmp/$TMPDIR" -A "ncx-linux-tools*noarch.rpm" 1>/dev/null 2>&1
+		#/usr/bin/wget $PATH_PACKAGES/ncx-linux-tools* --directory-prefix=/tmp/$TMPDIR > /dev/null 2>&1
+	fi
+	
+	VER_REPO=$(rpm -qpi /tmp/$TMPDIR/ncx-linux-tools* | grep "^Version *:" | sed -e "s/Version *: //" | sed -e "s/ .*//")
+	RELEASE_REPO=$(rpm -qpi /tmp/$TMPDIR/ncx-linux-tools* | grep "^Release *:" | sed -e "s/Release *: //" | sed -e "s/ .*//")
+	VERSION_REPO="$VER_REPO-$RELEASE_REPO"
+	
+	TO_UPDATE=""
+	if [ "$VERSION_REPO" != "$VERSION_INSTALLED" ]; then
+		if [ "$VER_REPO" != "$VER_INSTALLED" ]; then
+			NEWER=$(echo -e "$VER_REPO\n$VER_INSTALLED" | sort -V | tail -n1)
+			if [ "$NEWER" == "$VER_REPO" ]; then
+				TO_UPDATE="yes"
+			fi
+		elif [ "$RELEASE_REPO" != "$RELEASE_INSTALLED" ]; then
+			NEWER=$(echo -e "$RELEASE_REPO\n$RELEASE_INSTALLED" | sort -V | tail -n1)
+			if [ "$NEWER" == "$RELEASE_REPO" ]; then
+				TO_UPDATE="yes"
+			fi
+		fi
+	fi
+	
+	RPM_NAME=$(ls /tmp/$TMPDIR/ | grep ncx-linux-tools | tail -n1)
+	if [ "$TO_UPDATE" ]; then
+		if [ "$INSTALLED" == 1 ]; then
+			YUM_CMD="yum localupdate"
+		else
+			YUM_CMD="yum localinstall"
+		fi
+		if [ "$VERBOSE" == "FALSE" ]; then
+			$YUM_CMD -y --disablerepo='*' /tmp/$TMPDIR/$RPM_NAME 1>/dev/null 2>/tmp/$TMPDIR/yum.error
+		elif [ "$YES" == "TRUE" ]; then
+			$YUM_CMD -y --disablerepo='*' /tmp/$TMPDIR/$RPM_NAME 2>/tmp/$TMPDIR/yum.error
+		else
+			$YUM_CMD --disablerepo='*' /tmp/$TMPDIR/$RPM_NAME 2>/tmp/$TMPDIR/yum.error
+		fi
+		check_yum_errors
+		echo "  -> ncx-linux-tools RPM updated"
+		return 1
+	else
+		echo "  -> ncx-linux-tools up to date, no need to upgrade."
+		return 0
+	fi
+}
+
+function wget_data()
+{
+	local CMD0_ARGS="-r -l1 -nd -np \"$PATH_REPODATA/\" -P \"/tmp/$TMPDIR/\" -A \"*.cfg\""
+	local CMD1_ARGS="-r -l1 -nd -np \"$PATH_REPODATA/repodata\" -P \"/tmp/$TMPDIR/\""
+	if [ "$VERBOSE" == "FALSE" ]; then
+		/usr/bin/wget $CMD0_ARGS > /dev/null 2>&1
+		/usr/bin/wget $CMD1_ARGS > /dev/null 2>&1
+	else
+		/usr/bin/wget $CMD0_ARGS
+		/usr/bin/wget $CMD1_ARGS
+	fi
+	res=$?
+	return $res
+}
+
+function make_iso_repo()
+{
+	TMP_PATH=`echo $REPODATA | sed -e "s/.*.:\///"`
+	REPO_TYPE="local"
+	mkdir -p /tmp/$TMPDIR/cdrom
+	chcon -t mnt_t /tmp/
+	umount /tmp/$TMPDIR/cdrom 2>/dev/null
+	if [ "$VERBOSE" == "FALSE" ]; then
+		mount -o loop $TMP_PATH /tmp/$TMPDIR/cdrom > /dev/null 2>&1
+	else
+		mount -o loop $TMP_PATH /tmp/$TMPDIR/cdrom
+	
+	fi
+	[ "$?" -ge "1" ] && echo "ERROR: Unable to mount iso file !" && error_exit
+	cp /tmp/$TMPDIR/cdrom/*.cfg /tmp/$TMPDIR/
+	cp -a /tmp/$TMPDIR/cdrom/repodata /tmp/$TMPDIR/
+	PATH_REPODATA="/tmp/$TMPDIR /tmp/$TMPDIR/cdrom"
+	PATH_REPO="/tmp/$TMPDIR/cdrom"
+	PATH_PACKAGES="/tmp/$TMPDIR/cdrom/Packages/"
+	
+	TEST=$(ls /tmp/$TMPDIR/ | grep "ks_.*.cfg")
+	if [ -z "$TEST" ]; then
+		return 1
+	else
+		return 0
+	fi
+}
+
+function make_dir_repo()
+{
+	mkdir -p /tmp/$TMPDIR
+	TMP_PATH=`echo $REPODATA | sed -e "s/.*.:\/\///" | sed -e 's/\([[:alnum:]]\)$/\1\//'`
+	REPO_TYPE="local"
+	ln -s $TMP_PATH /tmp/$TMPDIR/cdrom 2>/dev/null
+	cp /tmp/$TMPDIR/cdrom/*.cfg /tmp/$TMPDIR/
+	[ "$?" -ge "1" ] && return 1
+	cp -a /tmp/$TMPDIR/cdrom/repodata /tmp/$TMPDIR/
+	PATH_REPODATA="/tmp/$TMPDIR /tmp/$TMPDIR/cdrom"
+	PATH_REPO="/tmp/$TMPDIR/cdrom"
+	PATH_PACKAGES="/tmp/$TMPDIR/cdrom/Packages/"
+	
+	TEST=$(ls /tmp/$TMPDIR/ | grep "ks_.*.cfg")
+	if [ -z "$TEST" ]; then
+		return 1
+	else
+		return 0
+	fi
+}
+
+function set_repo()
+{
+	# cdrom                   : keyword, set repository to local cdrom tray"
+	# an_ip                   : keyword, set repository to a remote ftp server"
+	# iso://path_to_iso_file  : use an iso as a local repository (will automount the iso)"
+	# file://path_to_repo_dir : set repository to a local directory"
+	# ftp://server_ip/repo    : set repository to a remote ftp server"
+	# http://server_ip/repo   : set repository to a remote http server"
+	# nfs://server_ip/repo    : set repository to a remote nfs server"
+	
+	case $REPODATA in
+		cdrom)
+			REPO_TYPE="local"
+			mkdir -p /tmp/$TMPDIR/cdrom
+			CDROMS=`ls /dev/ | grep "cdr\|dvd"`
+			for drive in $CDROMS; do
+				echo "trying /dev/$drive"
+				mount -t auto /dev/$drive /tmp/$TMPDIR/cdrom 1>>/root/debug 2>&1
+				TEST=$(ls /tmp/$TMPDIR/cdrom/ | grep "ks_.*.cfg")
+				if [ "$TEST" ]; then
+					echo "CDRom has been mounted on /dev/$drive"
+					break
+				else
+					umount /tmp/$TMPDIR/cdrom 2>/dev/null
+				fi
+			done
+			TEST=$(ls /tmp/$TMPDIR/cdrom/ | grep "ks_.*.cfg")
+			if [ -z "$TEST" ]; then
+				echo "Error: cannot find any valid bootCD in cdrom"
+				exit 1
+			fi
+			cp /tmp/$TMPDIR/cdrom/*.cfg /tmp/$TMPDIR/
+			cp -a /tmp/$TMPDIR/cdrom/repodata /tmp/$TMPDIR/
+			PATH_REPODATA="/tmp/$TMPDIR /tmp/$TMPDIR/cdrom"
+			PATH_REPO="/tmp/$TMPDIR/cdrom"
+			PATH_PACKAGES="/tmp/$TMPDIR/cdrom/Packages/"
+			;;
+		*)
+			PREFIX=`echo $REPODATA | sed -e "s/:\/\/.*//"`
+			case $PREFIX in
+				iso)
+					make_iso_repo
+					[ "$?" -ge "1" ] && echo "ERROR: $REPODATA is not a valid ISO !" && error_exit
+					;;
+				file)
+					make_dir_repo
+					[ "$?" -ge "1" ] && echo "ERROR: $REPODATA is not a valid repository directory !" && error_exit
+					;;
+				ftp)
+					SUFFIX=`echo $REPODATA | sed -e "s/.*.:\/\///"`
+					IP=`echo $SUFFIX | sed -e "s/\/.*.//"`
+					TMP_PATH=`echo $SUFFIX | sed -e "s/$IP\///"`
+					REPO_TYPE="remote"
+					PATH_REPODATA=$REPODATA
+					PATH_REPO=$REPODATA
+					ping $IP -c 1 > /dev/null 2>&1
+					[ "$?" -ge "1" ] && echo "ERROR: Host unreachable." && error_exit
+					wget_data
+					[ "$?" -ge "1" ] && echo "ERROR: OS repository not found" && error_exit
+					;;
+				http)
+					SUFFIX=`echo $REPODATA | sed -e "s/.*.:\/\///"`
+					IP=`echo $SUFFIX | sed -e "s/\/.*.//"`
+					TMP_PATH=`echo $SUFFIX | sed -e "s/$IP\///"`
+					REPO_TYPE="remote"
+					PATH_REPODATA=$REPODATA
+					PATH_REPO=$REPODATA
+					ping $IP -c 1 > /dev/null 2>&1
+					[ "$?" -ge "1" ] && echo "ERROR: Host unreachable." && error_exit
+					wget_data
+					[ "$?" -ge "1" ] && echo "ERROR: NetOS4 repository not found" && error_exit
+					;;
+				nfs)
+					SUFFIX=`echo $REPODATA | sed -e "s/.*.:\/\///"`
+					IP=`echo $SUFFIX | sed -e "s/\/.*.//"`
+					TMP_PATH=`echo $SUFFIX | sed -e "s/$IP\///"`
+					REPO_TYPE="local"
+					ping $IP -c 1 > /dev/null 2>&1 
+					[ "$?" -ge "1" ] && echo "ERROR: Host unreachable." && error_exit
+					mkdir -p /tmp/$TMPDIR/mount 2>/dev/null
+					umount /tmp/$TMPDIR/mount 2>/dev/null
+					if [ "$VERBOSE" == "FALSE" ]; then
+						mount -t nfs $IP:/$TMP_PATH /tmp/$TMPDIR/mount > /dev/null 2>&1
+					else
+						mount -t nfs $IP:/$TMP_PATH /tmp/$TMPDIR/mount
+					fi
+					[ "$?" -ge "1" ] && echo "ERROR: Unable to mount nfs repository !" && error_exit
+					cp /tmp/$TMPDIR/mount/*.cfg /tmp/$TMPDIR/
+					cp -a /tmp/$TMPDIR/mount/repodata /tmp/$TMPDIR/
+					PATH_REPODATA="/tmp/$TMPDIR/mount"
+					PATH_REPO="/tmp/$TMPDIR/mount"
+					;;
+				*)
+					IS_DIR=$(echo "$REPODATA" | grep "\.iso$")
+					if [ "$IS_DIR" ]; then
+						make_iso_repo
+						[ "$?" -ge "1" ] && echo "ERROR: $REPODATA is not a valid ISO !" && error_exit
+					elif [ -d "$REPODATA" ]; then
+						make_dir_repo
+						[ "$?" -ge "1" ] && echo "ERROR: $REPODATA is not a directory repository !" && error_exit
+					else
+						echo "$REPODATA is not a valid form."
+						error_exit
+					fi
+					;;
+			esac
+		
+	esac
+}
+
+
+function check_options()
+{
+	VERBOSE="FALSE"
+	YES="FALSE"
+	KEEPREPO="FALSE"
+	KEEPASMAIN="FALSE"
+	NOCHECK="FALSE"
+	YUM="/usr/bin/yum"
+	
+	if [ -f /etc/netos-release ] ; then
+		RELEASE_FILE="/etc/netos-release"
+		if [ ! -h "/etc/redhat-release" ]; then
+			rm -f /etc/redhat-release 2>/dev/null
+			rm -f /etc/netcentrex-release 2>/dev/null
+			ln -s $RELEASE_FILE /etc/redhat-release
+		fi
+	else
+		RELEASE_FILE="/etc/redhat-release"
+	fi
+	
+	if [ ! -e "/etc/netcentrex-release" ]; then
+		ln -s $RELEASE_FILE /etc/netcentrex-release
+	elif [ ! -h "/etc/netcentrex-release" ]; then
+		rm -f /etc/netcentrex-release
+		ln -s $RELEASE_FILE /etc/netcentrex-release
+	fi
+	
+	PROFILE_NAME=$(cat $RELEASE_FILE  | sed -e "s/.*profile: //" | sed -e "s/].*//" | sed -e "s/, version.*//" | grep -v "^$" | /usr/bin/tail -n 1)
+	OLD_PROFILE=$(cat $RELEASE_FILE  | sed -e "s/.*profile: //" | sed -e "s/].*//" | sed -e "s/, version.*//" | sed -e "s/ & .*//" | grep -v "^$" | /usr/bin/tail -n 1)
+	
+	if [ -z "$OLD_PROFILE" ]; then
+		echo "Cannot find OS profile in $RELEASE_FILE"
+		error_exit
+	fi
+	PROFILE=$OLD_PROFILE
+	
+	while getopts "kKyvhnp:r:-:" option ; do
+		if [ "$option" = "-" ]; then
+			case $OPTARG in
+				help) option=h ;;
+				profile) option=p ;;
+				repodata) option=r ;;
+				verbose) option=v ;;
+				yes) option=y ;;
+				*) echo "Unknown option $OPTARG" ;;
+			esac
+		fi
+		case $option in
+			h)
+				help
+				exit 0
+				;;
+			v)
+				VERBOSE="TRUE"
+				;;
+			k)
+				KEEPREPO="TRUE"
+				;;
+			K)
+				KEEPREPO="TRUE"
+				KEEPASMAIN="TRUE"
+				;;
+			y)
+				YES="TRUE"
+				YUM="/usr/bin/yum -y"
+				;;
+			n)
+				NOCHECK="TRUE"
+				;;
+			r)
+				REPODATA=$OPTARG
+				;;
+			p)
+				if [ "$PROFILE" != "$OPTARG" ]; then
+					if [ "$YES" = "FALSE" ]; then
+						echo -n "Do you want to change your profile from $PROFILE to $OPTARG?  [y/n]: "
+						read line
+						if [ "$line" == "y" -o "$line" == "yes" ] ; then
+							PROFILE=$OPTARG
+							PROFILE_NAME=$OPTARG
+							echo "Upgrading to profile $PROFILE."
+						else
+							exit 1
+						fi
+					else
+						PROFILE=$OPTARG
+						echo "Upgrading to profile $PROFILE."
+					fi
+					
+				else
+					echo "Keeping profile $PROFILE."
+				fi
+				;;
+		esac
+	done
+	
+	if [ "$VERBOSE" == "FALSE" -a "$YES"="FALSE" ]; then
+		echo 'Warning: Assuming "yes" in non verbose mode'
+		YUM="/usr/bin/yum -y"
+		YES="TRUE"
+	fi
+}
+
+
+
+#### MAIN ####
+SCRIPT=$(readlink -f $0)
+SCRIPTPATH=$(dirname $SCRIPT)
+CDROM_PATH=$(echo $SCRIPTPATH | sed -e "s|tools.*||")
+SCRIPTNAME=$(echo $SCRIPT | sed -e "s|$SCRIPTPATH/||")
+if [ "$SCRIPTNAME" == "auto-upgrade" ]; then
+	OPTIONS_LINE="$@ -r file://$CDROM_PATH"
+	AUTO_UPDATE="yes"
+else
+	OPTIONS_LINE=$@
+	AUTO_UPDATE=""
+fi
+
+## create temporary directory
+#TMPDIR=$RANDOM
+TMPDIR=upgrade
+rm -rf /tmp/$TMPDIR 2>/dev/null
+mkdir -p /tmp/$TMPDIR
+
+check_options $OPTIONS_LINE
+[ ! "$REPODATA" ] && help && exit 0
+
+set_repo
+
+#
+#if [ "$NOCHECK" == "FALSE" ]; then
+#	check_ver_ncxtools
+#	RES="$?"
+#	if [ "$RES" == "1" ]; then
+#		echo "Upgrade process will continue with the latest version of the tool"
+#		echo ""
+#		/usr/sbin/auto-upgrade -n $OPTIONS_LINE
+#		clean_exit
+#	fi
+#fi
+
+check_ks
+parse_ks 1>/dev/null 2>&1
+create_yum_repo > /dev/null 2>&1
+
+echo "System upgrade in progress, please wait ..."
+upgrade
+ERR="$?"
+if [ "$ERR" == "1" ]; then
+	echo "Cannot open/read repomd.xml file for repository"
+	error_exit
+elif [ "$ERR" == "2" ]; then
+	echo "Error: Unable to resolve all dependencies"
+	error_exit
+fi
+
+post_upgrade 1>/dev/null 2>&1
+umount /dev/cdrom 1>/dev/null 2>&1
+
+echo "" && echo "Upgrade complete!"
+perl -p -i -e "s/^\n//" $RELEASE_FILE
+cat $RELEASE_FILE | grep -v "^$" | /usr/bin/tail -n 1
+echo ""
+echo "More information about the upgrade: /root/upgrade.log"
+echo ""
+echo "You may need to reboot the system to take all changes in account."
+
+clean_exit 
+
+#### END MAIN ####
