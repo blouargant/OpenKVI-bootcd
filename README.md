@@ -15,5 +15,9 @@ Then get RPMs from the LFS server:
 ```
 
 ### Building the ISO file:
-Go to centos/7/centos/os/x86_64/tools/ directory and run `sh iso-tool.sh -p kvm`.  
-For more options, check `sh iso-tool.sh -h`.
+Go to **tools** directory and run *iso-tool.sh* script:
+``` bash
+> cd centos/7/centos/os/x86_64/tools/
+> sh iso-tool.sh -p kvm
+```
+For more options, check `-h` option of *iso-tool.sh*.
